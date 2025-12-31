@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -196,7 +197,7 @@ export default function Dashboard() {
                   {msg.role === 'assistant' ? <Bot className="w-5 h-5" /> : <User className="w-5 h-5" />}
                 </motion.div>
                 <motion.div 
-                  className={`p-4 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm transition-all duration-300 hover:shadow-md
+                  className={`p-4 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm transition-all duration-300 hover:shadow-md markdown-content
                     ${msg.role === 'assistant' 
                       ? 'bg-background border border-border rounded-tl-none hover:border-primary/30' 
                       : 'bg-primary text-primary-foreground rounded-tr-none hover:bg-primary/90'}
@@ -205,7 +206,13 @@ export default function Dashboard() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05 + 0.05, duration: 0.3 }}
                 >
-                  {msg.content}
+                  {msg.role === 'assistant' ? (
+                    <div className="space-y-4">
+                      <ReactMarkdown>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : msg.content}
                 </motion.div>
               </motion.div>
             ))}

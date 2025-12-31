@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,14 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
-import { Check, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, AlertCircle, Upload, File as FileIcon, X } from "lucide-react";
 import { saveFounderProfile } from "@/lib/api";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const steps = [
   { id: 'basics', title: 'Startup Basics' },
   { id: 'details', title: 'Details' },
-  { id: 'goals', title: 'Goals' }
+  { id: 'goals', title: 'Goals' },
+  { id: 'documents', title: 'Documents' }
 ];
 
 const formSchema = z.object({
@@ -49,6 +50,19 @@ export default function Onboarding() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setUploadedFiles(prev => [...prev, ...files]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -60,6 +74,7 @@ export default function Onboarding() {
         location: data.location,
         funding_goal: data.fundingGoal.toLowerCase(),
         preferred_language: data.language.toLowerCase(),
+        documents: uploadedFiles
       };
       
       // Save to backend
@@ -335,6 +350,73 @@ export default function Onboarding() {
                       </RadioGroup>
                       {form.formState.errors.fundingGoal && <p className="text-destructive text-sm">{form.formState.errors.fundingGoal.message}</p>}
                     </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-6"
+                  >
+                    <div className="space-y-2">
+                      <h2 className="text-2xl font-heading font-bold">Upload Documents (Optional)</h2>
+                      <p className="text-muted-foreground">Upload your pitch deck or business plan to help Nivesh.ai provide grounded advice.</p>
+                    </div>
+
+                    <div 
+                      className="border-2 border-dashed border-muted rounded-xl p-8 flex flex-col items-center justify-center space-y-4 hover:border-primary/50 transition-colors cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        multiple 
+                        accept=".pdf,.doc,.docx" 
+                        onChange={handleFileChange}
+                      />
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Upload className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium">Click to upload or drag and drop</p>
+                        <p className="text-xs text-muted-foreground">PDF, DOC, DOCX up to 10MB</p>
+                      </div>
+                    </div>
+
+                    {uploadedFiles.length > 0 && (
+                      <div className="space-y-2">
+                        {uploadedFiles.map((file, idx) => (
+                          <motion.div 
+                            key={idx}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border"
+                          >
+                            <div className="flex items-center gap-3">
+                              <FileIcon className="w-4 h-4 text-primary" />
+                              <span className="text-sm font-medium truncate max-w-[200px]">{file.name}</span>
+                            </div>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFile(idx);
+                              }}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

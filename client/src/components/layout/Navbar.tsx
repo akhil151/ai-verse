@@ -16,9 +16,24 @@ export function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-foreground transition-colors">How it Works</a>
-          <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+          <button 
+            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+            className="hover:text-foreground transition-colors"
+          >
+            Features
+          </button>
+          <button 
+            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+            className="hover:text-foreground transition-colors"
+          >
+            How it Works
+          </button>
+          <button 
+            onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+            className="hover:text-foreground transition-colors"
+          >
+            Pricing
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
