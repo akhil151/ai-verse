@@ -1,4 +1,4 @@
-# Hardcoded knowledge base for Indian startup funding (placeholder for future RAG)
+# Minimal fallback knowledge base - RAG provides primary knowledge
 INDIAN_FUNDING_KNOWLEDGE = """
 INDIAN STARTUP FUNDING STAGES:
 
@@ -28,12 +28,34 @@ INDIAN ECOSYSTEM SPECIFICS:
 - GST registration mandatory for Series A+
 """
 
-def get_funding_advisor_prompt(profile_data: dict, question: str) -> str:
+def get_funding_advisor_prompt(profile_data: dict, question: str, rag_context: str = "") -> str:
+    """
+    Generate prompt for Gemini with RAG context integration
+    
+    Args:
+        profile_data: Founder profile information
+        question: User's funding question
+        rag_context: Retrieved context from RAG (if available)
+    """
+    
+    # Use RAG context if available, otherwise fallback
+    knowledge_section = f"""
+RETRIEVED KNOWLEDGE FROM DOCUMENTS:
+{rag_context}
+
+FALLBACK KNOWLEDGE (use only if above is insufficient):
+{INDIAN_FUNDING_KNOWLEDGE}
+""" if rag_context else f"""
+KNOWLEDGE BASE:
+{INDIAN_FUNDING_KNOWLEDGE}
+
+Note: Operating in limited mode. For better answers, ensure document knowledge base is loaded.
+"""
+    
     return f"""
 You are an expert Indian startup funding advisor. Use the knowledge base and founder context to provide specific, actionable advice.
 
-KNOWLEDGE BASE:
-{INDIAN_FUNDING_KNOWLEDGE}
+{knowledge_section}
 
 FOUNDER CONTEXT:
 - Stage: {profile_data.get('startup_stage', 'Not specified')}

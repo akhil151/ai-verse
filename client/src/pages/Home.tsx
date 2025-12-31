@@ -125,13 +125,6 @@ export default function Home() {
                   {t.hero.cta} <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="h-12 px-8 text-lg rounded-full font-medium card-hover transition-all duration-300"
-              >
-                {t.hero.sample}
-              </Button>
             </motion.div>
           </motion.div>
         </div>
@@ -211,6 +204,108 @@ export default function Home() {
               />
             </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-heading font-bold mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-muted-foreground">Currently in pilot phase - Free for early adopters</p>
+          </div>
+
+          <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
+            <div className="bg-background p-8 rounded-2xl border card-hover">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Pilot</h3>
+                <div className="text-4xl font-bold text-primary mb-4">Free</div>
+                <p className="text-sm text-muted-foreground mb-6">For early adopters</p>
+                <ul className="text-sm space-y-3 text-left mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Unlimited funding advisory
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Document analysis (up to 5 PDFs)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Multi-language support
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Community support
+                  </li>
+                </ul>
+                <Button className="w-full" asChild>
+                  <Link href="/onboarding">Get Started</Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-primary p-8 rounded-2xl border border-primary shadow-xl shadow-primary/20 transform md:scale-105">
+              <div className="text-center text-primary-foreground">
+                <div className="inline-block bg-primary-foreground/20 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+                  Coming Q2 2026
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Growth</h3>
+                <div className="text-4xl font-bold mb-4">₹4,999<span className="text-sm font-normal">/mo</span></div>
+                <p className="text-sm opacity-90 mb-6">For scaling startups</p>
+                <ul className="text-sm space-y-3 text-left mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Everything in Pilot
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Unlimited document analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Investor matching
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Priority support
+                  </li>
+                </ul>
+                <Button className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+                  Notify Me
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-background p-8 rounded-2xl border card-hover">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Enterprise</h3>
+                <div className="text-4xl font-bold mb-4">Custom</div>
+                <p className="text-sm text-muted-foreground mb-6">For institutions</p>
+                <ul className="text-sm space-y-3 text-left mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Everything in Growth
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    White-label solution
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Custom AI training
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Dedicated support
+                  </li>
+                </ul>
+                <Button variant="outline" className="w-full">
+                  Contact Sales
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

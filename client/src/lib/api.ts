@@ -31,22 +31,14 @@ export interface FundingAdvice {
 // Profile endpoints
 export async function saveFounderProfile(profile: FounderProfile & { documents?: File[] }): Promise<any> {
   try {
-    const formData = new FormData();
-    Object.entries(profile).forEach(([key, value]) => {
-      if (key !== 'documents') {
-        formData.append(key, value as string);
-      }
-    });
-
-    if (profile.documents) {
-      profile.documents.forEach((file) => {
-        formData.append('files', file);
-      });
-    }
-
+    // Extract profile data without documents for JSON submission
+    const { documents, ...profileData } = profile;
+    
+    // Backend expects JSON, not FormData
     const response = await fetch(`${API_BASE_URL}/founder/profile`, {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData),
     });
     
     if (!response.ok) {

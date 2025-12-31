@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from typing import List, Optional
 from pydantic import BaseModel
 from app.models import FounderProfile, FundingQuestion, FundingAdvice
 from app.gemini_client import gemini_client
 from app.prompts import get_funding_advisor_prompt
+from app.rag_integration import rag_retriever
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,40 @@ async def save_founder_profile(profile: FounderProfile):
         "profile": profile.dict()
     }
 
+@router.post("/founder/documents")
+async def upload_founder_documents(files: List[UploadFile] = File(...)):
+    """
+    Upload documents for founder (pitch deck, business plan, etc.)
+    These documents can be used to enhance RAG context
+    
+    NOTE: Current implementation logs uploads but does not persist to vector store.
+    For full RAG integration, documents would need to be:
+    1. Saved to disk
+    2. Processed through ingestion pipeline
+    3. Embedded and stored in vector database
+    """
+    logger.info(f"📄 Received {len(files)} document(s) for upload")
+    
+    uploaded_files = []
+    for file in files:
+        logger.info(f"   - {file.filename} ({file.content_type}, {file.size if hasattr(file, 'size') else 'unknown size'})")
+        
+        # Read file content (for potential future processing)
+        content = await file.read()
+        logger.info(f"   ✓ Read {len(content)} bytes from {file.filename}")
+        
+        uploaded_files.append({
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "size": len(content)
+        })
+    
+    return {
+        "message": f"Successfully received {len(files)} document(s)",
+        "files": uploaded_files,
+        "note": "Documents logged. For RAG integration, they need to be processed through the ingestion pipeline."
+    }
+
 @router.get("/founder/profile")
 async def get_founder_profile():
     """Get current founder profile"""
@@ -62,16 +98,41 @@ async def get_funding_advice(question: FundingQuestion):
         )
     
     try:
-        # Generate prompt with context
-        prompt = get_funding_advisor_prompt(profile_data, question.question)
+        # 1️⃣ RAG RETRIEVAL - Get relevant context from vector store
+        logger.info(f"🔍 Starting RAG retrieval for question: {question.question[:100]}...")
+        rag_docs, rag_metas = rag_retriever.retrieve_context(question.question, top_k=3)
         
-        # Get advice from Gemini
+        # Format RAG context for prompt
+        rag_context = rag_retriever.format_rag_context(rag_docs, rag_metas)
+        
+        if rag_context:
+            logger.info(f"✅ RAG retrieved {len(rag_docs)} documents (total {len(rag_context)} chars)")
+        else:
+            logger.warning("⚠️ No RAG context retrieved - using fallback knowledge only")
+        
+        # 2️⃣ PROMPT GENERATION - Build prompt with RAG context + founder profile
+        logger.info("📝 Building prompt with RAG context...")
+        prompt = get_funding_advisor_prompt(profile_data, question.question, rag_context)
+        
+        # 3️⃣ GEMINI CALL - Get AI-generated advice
+        logger.info("🤖 Calling Gemini AI...")
+        if not gemini_client.is_configured:
+            logger.error("❌ Gemini is NOT configured - cannot generate real advice")
+            raise HTTPException(
+                status_code=503,
+                detail="AI service not configured. Please set GEMINI_API_KEY environment variable."
+            )
+        
         advice_data = gemini_client.generate_funding_advice(prompt)
+        logger.info("✅ Gemini response received")
         
-        # Validate and return structured response
+        # 4️⃣ VALIDATE & RETURN - Ensure response is valid
         return FundingAdvice(**advice_data)
         
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"❌ Error in funding advice pipeline: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating advice: {str(e)}")
 
 @router.get("/health")

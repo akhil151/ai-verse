@@ -3,10 +3,19 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/AppContext";
 import { translations } from "@/lib/translations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function Navbar() {
   const { profile, updateProfile } = useApp();
   const t = translations[profile.language as keyof typeof translations] || translations.English;
+  const [showPricing, setShowPricing] = useState(false);
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -32,7 +41,7 @@ export function Navbar() {
             {t.nav.howItWorks}
           </button>
           <button 
-            onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => setShowPricing(true)}
             className="hover:text-foreground transition-colors"
           >
             {t.nav.pricing}
@@ -61,6 +70,39 @@ export function Navbar() {
           </Button>
         </div>
       </div>
+      
+      <Dialog open={showPricing} onOpenChange={setShowPricing}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pricing Information</DialogTitle>
+            <DialogDescription className="space-y-4 pt-4">
+              <p className="text-foreground">
+                Nivesh.ai is currently in <span className="font-semibold text-primary">pilot phase</span> for early-stage Indian startups.
+              </p>
+              <p>
+                We're offering <span className="font-semibold">free access</span> to selected founders during this period to refine our AI advisor based on real-world feedback.
+              </p>
+              <p>
+                Pricing tiers will be introduced in <span className="font-semibold">Q2 2026</span> based on:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Number of funding advisory sessions</li>
+                <li>Document analysis capacity</li>
+                <li>Investor matching features</li>
+                <li>Priority support</li>
+              </ul>
+              <p className="text-sm text-muted-foreground pt-2">
+                Join now to lock in early access benefits and help shape the product.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowPricing(false)} asChild>
+              <Link href="/onboarding">Get Started Free</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </nav>
   );
 }
