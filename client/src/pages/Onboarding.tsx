@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
-import { Check, ChevronRight, ChevronLeft } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
+import { saveFounderProfile } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
 
 const steps = [
   { id: 'basics', title: 'Startup Basics' },
@@ -46,9 +48,36 @@ export default function Onboarding() {
     mode: "onChange" 
   });
 
-  const onSubmit = (data: FormData) => {
-    updateProfile(data);
-    setLocation("/dashboard");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    try {
+      // Normalize data for backend API
+      const backendProfile = {
+        startup_stage: data.stage.toLowerCase(),
+        sector: data.sector.toLowerCase(),
+        location: data.location,
+        funding_goal: data.fundingGoal.toLowerCase(),
+        preferred_language: data.language.toLowerCase(),
+      };
+      
+      // Save to backend
+      await saveFounderProfile(backendProfile);
+      
+      // Update local context
+      updateProfile(data);
+      
+      // Navigate to dashboard
+      setLocation("/dashboard");
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      // Still navigate even if backend fails - frontend context is saved
+      updateProfile(data);
+      setLocation("/dashboard");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = async () => {

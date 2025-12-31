@@ -1,0 +1,159 @@
+You are a senior full-stack engineer and QA lead performing a final integration audit for a production-grade GenAI application.
+
+CRITICAL MODE:
+- Treat this as a pre-demo, pre-submission verification.
+- Stability, correctness, and clarity are more important than adding features.
+- Do NOT introduce breaking changes.
+- Fix issues only if they are safe and necessary.
+
+--------------------------------------------------
+PROJECT CONTEXT:
+
+Project Name: Nivesh.ai  
+Type: AI Funding Co-Founder (GenAI + RAG, FastAPI + React/Next.js)
+
+Frontend:
+- Already built and styled
+- Connected to backend APIs
+- Professional SaaS UI
+- Uses a service/API layer
+
+Backend:
+- FastAPI backend
+- Located in `startup-rag` folder
+- RAG pipeline exists but may not yet be fully connected to chat
+- MongoDB intended for persistence
+
+Goal of this task:
+Verify that frontend, backend, and database are correctly connected, error-free, and ready for final RAG integration.
+
+--------------------------------------------------
+YOUR TASKS (EXECUTE IN THIS EXACT ORDER):
+
+### 1️⃣ FRONTEND VERIFICATION
+Check the frontend for:
+- Syntax errors
+- Type errors (if TypeScript)
+- Broken imports
+- API endpoint mismatches
+- Incorrect request payloads
+- Missing environment variables
+- Console errors or warnings
+
+Verify:
+- API base URL is correct
+- Environment variables are loaded correctly
+- Error handling is present
+- Loading states work
+- No hardcoded mock data remains (unless intentional)
+
+Report:
+- ✅ What is working
+- ❌ What is broken
+- ⚠️ What is risky but not fatal
+
+--------------------------------------------------
+### 2️⃣ BACKEND VERIFICATION
+Check the FastAPI backend for:
+- App startup errors
+- Route registration correctness
+- Dependency injection issues
+- Missing imports
+- Pydantic schema mismatches
+- Unhandled exceptions
+
+Verify:
+- All expected endpoints exist
+- Endpoints return valid JSON
+- Status codes are correct
+- Backend does not crash on bad input
+
+--------------------------------------------------
+### 3️⃣ FRONTEND ↔ BACKEND INTEGRATION TEST
+Perform a logical integration test:
+- Does frontend hit the correct backend routes?
+- Are request payloads aligned with backend schemas?
+- Are responses correctly parsed and rendered?
+- Are error responses handled gracefully?
+
+Explicitly confirm:
+- No CORS issues
+- No 404 / 422 / 500 errors during normal usage
+- Network requests are stable
+
+--------------------------------------------------
+### 4️⃣ DATABASE (MONGODB) CONNECTION AUDIT
+Check MongoDB integration:
+- Verify if MongoDB connection code exists
+- Verify connection lifecycle (startup / shutdown)
+- Verify error handling on connection failure
+- Verify that no database calls are made without a valid connection
+
+If MongoDB is:
+- Properly connected → confirm and report
+- Partially implemented → explain what is missing
+- Not connected → clearly state this and STOP
+
+DO NOT guess or fabricate a MongoDB URI.
+
+--------------------------------------------------
+### 5️⃣ ERROR & EDGE-CASE TESTING
+Check for:
+- Empty inputs
+- Invalid payloads
+- Network failure scenarios
+- Backend unavailable scenarios
+
+Ensure:
+- Backend never crashes
+- Frontend shows meaningful error UI
+- Logs are helpful and clean
+
+--------------------------------------------------
+### 6️⃣ RAG-READINESS CHECK
+Evaluate whether the system is ready to plug in the RAG model:
+
+Confirm:
+- /api/chat (or equivalent) endpoint exists
+- Endpoint accepts:
+  - user query
+  - founder context
+- Endpoint returns a structured response
+- No frontend assumptions block RAG output
+
+State clearly:
+- ✅ Ready for RAG integration
+- ⚠️ Ready with minor changes
+- ❌ Not ready (explain why)
+
+--------------------------------------------------
+### 7️⃣ ISSUE RESOLUTION (CAREFUL MODE)
+If you find issues:
+- Fix only what is safe
+- Explain every fix clearly
+- If something cannot be fixed without user input:
+  - STOP
+  - Report exactly what is needed (e.g., MongoDB URI, env var)
+
+--------------------------------------------------
+### 8️⃣ FINAL REPORT (MANDATORY)
+Produce a clear final report with these sections:
+
+- Frontend Status
+- Backend Status
+- Database Status
+- Integration Status
+- Issues Found (if any)
+- Fixes Applied (if any)
+- Actions Required from User (if any)
+- Final Verdict:
+  “Ready for RAG integration” or “Not ready (with reasons)”
+
+--------------------------------------------------
+IMPORTANT RULES:
+- No assumptions
+- No silent fixes
+- No skipping steps
+- Be explicit, honest, and precise
+
+This report will be used to decide whether the project is demo-ready.

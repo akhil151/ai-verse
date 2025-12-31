@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
   Check
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { getFundingAdvice, saveFounderProfile, type FundingAdvice } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -34,6 +35,33 @@ export default function Dashboard() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+  const [fundingAdvice, setFundingAdvice] = useState<FundingAdvice | null>(null);
+  const [loadingAdvice, setLoadingAdvice] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Save profile to backend on component mount
+  useEffect(() => {
+    const saveProfile = async () => {
+      try {
+        const normalizedProfile = {
+          startup_stage: (profile.stage || 'Idea').toLowerCase(),
+          sector: profile.sector.toLowerCase(),
+          location: profile.location,
+          funding_goal: (profile.fundingGoal || 'Angel').toLowerCase(),
+          preferred_language: profile.language.toLowerCase(),
+        };
+        await saveFounderProfile(normalizedProfile);
+        setApiError(null);
+      } catch (error) {
+        console.error('Failed to save profile:', error);
+        setApiError('Could not save profile to backend. Using local mode.');
+      }
+    };
+    
+    if (profile.sector && profile.stage && profile.fundingGoal) {
+      saveProfile();
+    }
+  }, [profile]);
 
   const toggleCheck = (index: number) => {
     const newChecked = new Set(checkedItems);
@@ -49,34 +77,54 @@ export default function Dashboard() {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
+    const userQuestion = inputValue;
     const newMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue,
+      content: userQuestion,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
     setIsTyping(true);
+    setLoadingAdvice(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "Based on recent data from similar startups in your sector, investors are looking for strong unit economics before Series A.",
-        "For government grants, you should check the Startup India Seed Fund Scheme. Your sector is eligible.",
-        "I've updated your readiness score based on this new information. You need to work on your Go-To-Market strategy document."
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      // Call the real API
+      const advice = await getFundingAdvice({
+        question: userQuestion,
+        context: `Stage: ${profile.stage}, Sector: ${profile.sector}, Goal: ${profile.fundingGoal}`
+      });
       
+      setFundingAdvice(advice);
+      
+      // Add AI response to chat
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: randomResponse,
+        content: advice.explanation,
         timestamp: new Date()
       }]);
+      
+      setApiError(null);
+    } catch (error) {
+      console.error('Error fetching advice:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Failed to get funding advice. Please try again.';
+      
+      // Show fallback response
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `I'm currently unable to connect to the AI advisor (${errorMsg}). Please ensure the backend is running at http://localhost:8000`,
+        timestamp: new Date()
+      }]);
+      
+      setApiError(errorMsg);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+      setLoadingAdvice(false);
+    }
   };
 
   return (
