@@ -87,6 +87,27 @@ export default function Dashboard() {
 
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
+
+    // 🔥 SOLUTION A: Pre-filter casual greetings to avoid expensive LLM calls
+    const casualGreetings = ['hi', 'hello', 'hey', 'thanks', 'thank you', 'ok', 'okay', 'bye', 'goodbye'];
+    const normalizedQuestion = userQuestion.toLowerCase().trim().replace(/[!.?]/g, '');
+    const isCasualMessage = casualGreetings.includes(normalizedQuestion);
+    
+    if (isCasualMessage) {
+      // Respond without calling expensive LLM
+      setIsTyping(true);
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: "Hello! Feel free to ask me any funding-related questions. For example: 'What investors should I approach?' or 'How do I prepare my pitch deck?'",
+          timestamp: new Date()
+        }]);
+        setIsTyping(false);
+      }, 500);
+      return; // Exit early, no API call
+    }
+
     setIsTyping(true);
     setLoadingAdvice(true);
 

@@ -1,8 +1,10 @@
 // API Service Layer for Nivesh.ai Frontend
-// Connects to FastAPI backend at http://localhost:8000
+// Connects to FastAPI backend
 
+// Production: Use VITE_API_URL env variable
+// Development: Auto-detect localhost:8000
 const API_BASE_URL = typeof window !== 'undefined' 
-  ? `${window.location.protocol}//${window.location.hostname}:8000`
+  ? (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`)
   : 'http://localhost:8000';
 
 export interface FounderProfile {
