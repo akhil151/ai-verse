@@ -4,8 +4,12 @@ import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, ShieldCheck, BarChart3, Globe } from "lucide-react";
 import heroBg from "@assets/generated_images/abstract_professional_blue_data_network_background.png";
 import { useEffect, useState, useRef } from "react";
+import { useApp } from "@/context/AppContext";
+import { translations } from "@/lib/translations";
 
 export default function Home() {
+  const { profile } = useApp();
+  const t = translations[profile.language as keyof typeof translations] || translations.English;
   const [featuresRevealed, setFeaturesRevealed] = useState(false);
   const [stepsRevealed, setStepsRevealed] = useState(false);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -50,7 +54,7 @@ export default function Home() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, type: "spring", damping: 20, stiffness: 100 }
+      transition: { duration: 0.5, type: "spring", damping: 20, stiffness: 100 } as any
     }
   };
 
@@ -84,7 +88,7 @@ export default function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              Now Live for Early Access
+              {t.hero.badge}
             </motion.div>
 
             <motion.h1 
@@ -93,8 +97,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.6 }}
             >
-              Your AI Funding Co-Founder <br />
-              <span className="text-primary">Decisions, not answers.</span>
+              {t.hero.title} <br />
+              <span className="text-primary">{t.hero.subtitle}</span>
             </motion.h1>
 
             <motion.p 
@@ -103,7 +107,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.6 }}
             >
-              We help Indian founders make correct funding decisions using verified data, explained in your language. No jargon, just clear paths to capital.
+              {t.hero.description}
             </motion.p>
 
             <motion.div 
@@ -118,7 +122,7 @@ export default function Home() {
                 asChild
               >
                 <Link href="/onboarding" className="flex items-center gap-2">
-                  Start Funding Assessment <ArrowRight className="w-5 h-5" />
+                  {t.hero.cta} <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
               <Button 
@@ -126,7 +130,7 @@ export default function Home() {
                 size="lg" 
                 className="h-12 px-8 text-lg rounded-full font-medium card-hover transition-all duration-300"
               >
-                View Sample Report
+                {t.hero.sample}
               </Button>
             </motion.div>
           </motion.div>
@@ -134,7 +138,7 @@ export default function Home() {
       </section>
 
       {/* Value Prop Section */}
-      <section className="py-24 bg-muted/30">
+      <section id="features" className="py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div 
             ref={featuresRef}
@@ -169,7 +173,7 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24">
+      <section id="how-it-works" className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl font-heading font-bold mb-4">How Nivesh.ai Works</h2>

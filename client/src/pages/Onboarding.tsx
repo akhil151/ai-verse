@@ -14,13 +14,7 @@ import { useApp } from "@/context/AppContext";
 import { Check, ChevronRight, ChevronLeft, AlertCircle, Upload, File as FileIcon, X } from "lucide-react";
 import { saveFounderProfile } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
-
-const steps = [
-  { id: 'basics', title: 'Startup Basics' },
-  { id: 'details', title: 'Details' },
-  { id: 'goals', title: 'Goals' },
-  { id: 'documents', title: 'Documents' }
-];
+import { translations } from "@/lib/translations";
 
 const formSchema = z.object({
   stage: z.enum(['Idea', 'MVP', 'Revenue', 'Growth'], { required_error: "Please select a stage" }),
@@ -35,16 +29,24 @@ type FormData = z.infer<typeof formSchema>;
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [, setLocation] = useLocation();
-  const { updateProfile } = useApp();
+  const { profile, updateProfile } = useApp();
+  const t = translations[profile.language as keyof typeof translations] || translations.English;
+
+  const steps = [
+    { id: 'basics', title: t.onboarding.steps.basics },
+    { id: 'details', title: t.onboarding.steps.details },
+    { id: 'goals', title: t.onboarding.steps.goals },
+    { id: 'documents', title: t.onboarding.steps.documents }
+  ];
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      stage: undefined,
-      sector: "",
-      location: "",
-      fundingGoal: undefined,
-      language: "English"
+      stage: profile.stage as any || undefined,
+      sector: profile.sector || "",
+      location: profile.location || "",
+      fundingGoal: profile.fundingGoal as any || undefined,
+      language: profile.language || "English"
     },
     mode: "onChange" 
   });
@@ -67,7 +69,6 @@ export default function Onboarding() {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      // Normalize data for backend API
       const backendProfile = {
         startup_stage: data.stage.toLowerCase(),
         sector: data.sector.toLowerCase(),
@@ -77,17 +78,11 @@ export default function Onboarding() {
         documents: uploadedFiles
       };
       
-      // Save to backend
       await saveFounderProfile(backendProfile);
-      
-      // Update local context
       updateProfile(data);
-      
-      // Navigate to dashboard
       setLocation("/dashboard");
     } catch (error) {
       console.error('Error saving profile:', error);
-      // Still navigate even if backend fails - frontend context is saved
       updateProfile(data);
       setLocation("/dashboard");
     } finally {
@@ -186,14 +181,15 @@ export default function Onboarding() {
                     className="space-y-6"
                   >
                     <div className="space-y-2">
-                      <h2 className="text-2xl font-heading font-bold">Tell us about your startup</h2>
-                      <p className="text-muted-foreground">This helps our AI tailor the advice to your specific situation.</p>
+                      <h2 className="text-2xl font-heading font-bold">{t.onboarding.basics.title}</h2>
+                      <p className="text-muted-foreground">{t.onboarding.basics.description}</p>
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-base">Current Stage</Label>
+                      <Label className="text-base">{t.onboarding.basics.stage}</Label>
                       <RadioGroup 
                         onValueChange={(val) => form.setValue("stage", val as any)} 
+                        defaultValue={form.getValues("stage")}
                         className="grid grid-cols-2 gap-4"
                       >
                         {['Idea', 'MVP', 'Revenue', 'Growth'].map((stage, idx) => (
@@ -224,10 +220,13 @@ export default function Onboarding() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <Label htmlFor="sector">Sector / Industry</Label>
-                      <Select onValueChange={(val) => form.setValue("sector", val)}>
+                      <Label htmlFor="sector">{t.onboarding.basics.sector}</Label>
+                      <Select 
+                        onValueChange={(val) => form.setValue("sector", val)}
+                        defaultValue={form.getValues("sector")}
+                      >
                         <SelectTrigger className="focus-ring-premium">
-                          <SelectValue placeholder="Select your sector" />
+                          <SelectValue placeholder={t.onboarding.basics.sectorPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="SaaS">SaaS / B2B Software</SelectItem>
@@ -254,8 +253,8 @@ export default function Onboarding() {
                     className="space-y-6"
                   >
                     <div className="space-y-2">
-                      <h2 className="text-2xl font-heading font-bold">Localization Details</h2>
-                      <p className="text-muted-foreground">We localize insights based on your region and preferred language.</p>
+                      <h2 className="text-2xl font-heading font-bold">{t.onboarding.localization.title}</h2>
+                      <p className="text-muted-foreground">{t.onboarding.localization.description}</p>
                     </div>
 
                     <motion.div 
@@ -264,10 +263,10 @@ export default function Onboarding() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
                     >
-                      <Label htmlFor="location">Where are you based?</Label>
+                      <Label htmlFor="location">{t.onboarding.localization.location}</Label>
                       <Input 
                         id="location" 
-                        placeholder="City, State (e.g., Bengaluru, Karnataka)" 
+                        placeholder={t.onboarding.localization.locationPlaceholder} 
                         className="input-glow focus-ring-premium"
                         {...form.register("location")}
                       />
@@ -280,10 +279,13 @@ export default function Onboarding() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <Label htmlFor="language">Preferred Language for Reports</Label>
+                      <Label htmlFor="language">{t.onboarding.localization.language}</Label>
                       <Select 
-                        onValueChange={(val) => form.setValue("language", val as any)}
-                        defaultValue="English"
+                        onValueChange={(val: any) => {
+                          form.setValue("language", val);
+                          updateProfile({ language: val });
+                        }}
+                        defaultValue={form.getValues("language")}
                       >
                         <SelectTrigger className="focus-ring-premium">
                           <SelectValue placeholder="Select Language" />
@@ -309,19 +311,20 @@ export default function Onboarding() {
                     className="space-y-6"
                   >
                     <div className="space-y-2">
-                      <h2 className="text-2xl font-heading font-bold">What are you looking for?</h2>
-                      <p className="text-muted-foreground">Select your primary funding goal right now.</p>
+                      <h2 className="text-2xl font-heading font-bold">{t.onboarding.goals.title}</h2>
+                      <p className="text-muted-foreground">{t.onboarding.goals.description}</p>
                     </div>
 
                     <div className="space-y-4">
                       <RadioGroup 
                         onValueChange={(val) => form.setValue("fundingGoal", val as any)} 
+                        defaultValue={form.getValues("fundingGoal")}
                         className="grid gap-4"
                       >
                         {[
-                          { id: 'Grant', title: 'Government Grants', desc: 'Non-dilutive funding for research & innovation' },
-                          { id: 'Angel', title: 'Angel Investment', desc: 'Early stage capital from individuals' },
-                          { id: 'VC', title: 'Venture Capital', desc: 'Institutional capital for high growth' }
+                          { id: 'Grant', title: t.onboarding.goals.grant.title, desc: t.onboarding.goals.grant.desc },
+                          { id: 'Angel', title: t.onboarding.goals.angel.title, desc: t.onboarding.goals.angel.desc },
+                          { id: 'VC', title: t.onboarding.goals.vc.title, desc: t.onboarding.goals.vc.desc }
                         ].map((item, idx) => (
                           <motion.div 
                             key={item.id}
@@ -363,8 +366,8 @@ export default function Onboarding() {
                     className="space-y-6"
                   >
                     <div className="space-y-2">
-                      <h2 className="text-2xl font-heading font-bold">Upload Documents (Optional)</h2>
-                      <p className="text-muted-foreground">Upload your pitch deck or business plan to help Nivesh.ai provide grounded advice.</p>
+                      <h2 className="text-2xl font-heading font-bold">{t.onboarding.documents.title}</h2>
+                      <p className="text-muted-foreground">{t.onboarding.documents.description}</p>
                     </div>
 
                     <div 
@@ -383,8 +386,8 @@ export default function Onboarding() {
                         <Upload className="w-6 h-6 text-primary" />
                       </div>
                       <div className="text-center">
-                        <p className="font-medium">Click to upload or drag and drop</p>
-                        <p className="text-xs text-muted-foreground">PDF, DOC, DOCX up to 10MB</p>
+                        <p className="font-medium">{t.onboarding.documents.uploadText}</p>
+                        <p className="text-xs text-muted-foreground">{t.onboarding.documents.uploadHint}</p>
                       </div>
                     </div>
 
@@ -434,15 +437,16 @@ export default function Onboarding() {
                   disabled={currentStep === 0}
                   className="transition-all duration-200"
                 >
-                  <ChevronLeft className="mr-2 h-4 w-4" /> Back
+                  <ChevronLeft className="mr-2 h-4 w-4" /> {t.onboarding.buttons.back}
                 </Button>
                 
                 {currentStep === steps.length - 1 ? (
                   <Button 
                     type="submit" 
                     className="px-8 btn-press glow-primary transition-all duration-300"
+                    disabled={isSubmitting}
                   >
-                    Generate Dashboard <ChevronRight className="ml-2 h-4 w-4" />
+                    {isSubmitting ? "Processing..." : t.onboarding.buttons.generate} <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Button 
@@ -450,7 +454,7 @@ export default function Onboarding() {
                     onClick={nextStep} 
                     className="px-8 btn-press glow-primary transition-all duration-300"
                   >
-                    Next Step <ChevronRight className="ml-2 h-4 w-4" />
+                    {t.onboarding.buttons.next} <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
               </motion.div>

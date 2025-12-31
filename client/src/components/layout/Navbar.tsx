@@ -1,9 +1,12 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/AppContext";
+import { translations } from "@/lib/translations";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function Navbar() {
-  const { profile } = useApp();
+  const { profile, updateProfile } = useApp();
+  const t = translations[profile.language as keyof typeof translations] || translations.English;
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -20,29 +23,40 @@ export function Navbar() {
             onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             className="hover:text-foreground transition-colors"
           >
-            Features
+            {t.nav.features}
           </button>
           <button 
             onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
             className="hover:text-foreground transition-colors"
           >
-            How it Works
+            {t.nav.howItWorks}
           </button>
           <button 
             onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
             className="hover:text-foreground transition-colors"
           >
-            Pricing
+            {t.nav.pricing}
           </button>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{profile.language}</span>
-          </div>
+          <Select 
+            value={profile.language} 
+            onValueChange={(val: any) => updateProfile({ language: val })}
+          >
+            <SelectTrigger className="w-[110px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="English">English</SelectItem>
+              <SelectItem value="Hindi">हिंदी (Hindi)</SelectItem>
+              <SelectItem value="Tamil">தமிழ் (Tamil)</SelectItem>
+              <SelectItem value="Telugu">తెలుగు (Telugu)</SelectItem>
+            </SelectContent>
+          </Select>
           <Button size="sm" className="font-medium" asChild>
             <Link href="/onboarding">
-              Get Started
+              {t.nav.getStarted}
             </Link>
           </Button>
         </div>
