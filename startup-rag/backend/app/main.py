@@ -10,16 +10,17 @@ app = FastAPI(
 )
 
 # Production-ready CORS configuration
+# Note: FastAPI requires exact origin matches - wildcards like *.vercel.app don't work
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:5000,http://localhost:5173,https://*.vercel.app"
+    "http://localhost:5000,http://localhost:5173,http://localhost:5001,https://verse-rho.vercel.app"
 ).split(",")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS if os.getenv("ALLOWED_ORIGINS") else ["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
