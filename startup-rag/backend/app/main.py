@@ -1,7 +1,8 @@
 import os
 import sys
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 # Working directory check (warning only - does not block production)
 current_dir = os.getcwd()
@@ -45,7 +46,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# CORSMiddleware handles OPTIONS requests automatically - no manual handler needed
+# Global OPTIONS preflight handler - prevents validation/routing on OPTIONS
+@app.middleware("http")
+async def preflight_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return Response(status_code=204)
+    return await call_next(request)
 
 app.include_router(router)
 app.include_router(rag_router)
