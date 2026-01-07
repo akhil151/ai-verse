@@ -45,7 +45,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# CORSMiddleware handles OPTIONS requests automatically - no manual handler needed
+# CORS PREFLIGHT SHORT-CIRCUIT - Intercepts ALL OPTIONS requests
+# Returns 204 immediately BEFORE routing/dependencies/validation
+# Allows CORSMiddleware to attach headers correctly in production
+@app.middleware("http")
+async def options_preflight_handler(request, call_next):
+    if request.method == "OPTIONS":
+        from fastapi import Response
+        return Response(status_code=204)
+    return await call_next(request)
 
 app.include_router(router)
 app.include_router(rag_router)
