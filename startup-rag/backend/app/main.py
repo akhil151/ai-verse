@@ -3,27 +3,26 @@ import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Working directory safety check
+# Working directory check (warning only - does not block production)
 current_dir = os.getcwd()
 expected_dir_name = "backend"
 if not current_dir.endswith(expected_dir_name):
     print("\n" + "="*70)
-    print("⚠️  ERROR: Backend must be run from the 'backend' directory!")
+    print("⚠️  WARNING: Backend should be run from the 'backend' directory for local dev")
     print("="*70)
     print(f"Current directory: {current_dir}")
-    print(f"\n✅ Correct way to start:")
+    print(f"\n✅ For local development:")
     print("   1. cd startup-rag/backend")
     print("   2. python -m uvicorn app.main:app --reload")
     print("\n   OR use: npm run dev:backend (from project root)")
     print("="*70 + "\n")
-    sys.exit(1)
+    # NOTE: Does NOT exit - allows production deployment to continue
 
 from app.routes import router
 from app.rag_routes import rag_router
 from app.market_routes import market_router
 from app.financial_narrative_routes import financial_router
 from app.multilingual_rag import ChatRequest, chat_multilingual
-from fastapi import Response, Request
 
 app = FastAPI(
     title="Nivesh.ai Backend",
@@ -46,26 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Explicit OPTIONS handler for ALL routes (preflight safety)
-# CRITICAL: Must return specific origin, not *, when credentials=true
-@app.options("/{full_path:path}")
-async def options_handler(request: Request, full_path: str):
-    origin = request.headers.get("origin", "https://ai-verse-123.vercel.app")
-    
-    # Validate origin is in allowed list
-    if origin not in ALLOWED_ORIGINS and not any(origin.startswith(o) for o in ALLOWED_ORIGINS):
-        origin = ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else origin
-    
-    return Response(
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Max-Age": "3600",
-        }
-    )
+# CORSMiddleware handles OPTIONS requests automatically - no manual handler needed
 
 app.include_router(router)
 app.include_router(rag_router)
