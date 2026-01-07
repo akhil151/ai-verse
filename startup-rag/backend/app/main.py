@@ -23,7 +23,7 @@ from app.rag_routes import rag_router
 from app.market_routes import market_router
 from app.financial_narrative_routes import financial_router
 from app.multilingual_rag import ChatRequest, chat_multilingual
-from fastapi import Response
+from fastapi import Response, Request
 
 app = FastAPI(
     title="Nivesh.ai Backend",
@@ -47,12 +47,20 @@ app.add_middleware(
 )
 
 # Explicit OPTIONS handler for ALL routes (preflight safety)
+# CRITICAL: Must return specific origin, not *, when credentials=true
 @app.options("/{full_path:path}")
-async def options_handler(full_path: str):
+async def options_handler(request: Request, full_path: str):
+    origin = request.headers.get("origin", "https://ai-verse-123.vercel.app")
+    
+    # Validate origin is in allowed list
+    if origin not in ALLOWED_ORIGINS and not any(origin.startswith(o) for o in ALLOWED_ORIGINS):
+        origin = ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else origin
+    
     return Response(
         status_code=200,
         headers={
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Max-Age": "3600",
