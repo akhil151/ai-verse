@@ -23,6 +23,7 @@ from app.rag_routes import rag_router
 from app.market_routes import market_router
 from app.financial_narrative_routes import financial_router
 from app.multilingual_rag import ChatRequest, chat_multilingual
+from fastapi import Response
 
 app = FastAPI(
     title="Nivesh.ai Backend",
@@ -45,10 +46,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Explicit OPTIONS handler for ALL routes (preflight safety)
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "3600",
+        }
+    )
+
 app.include_router(router)
 app.include_router(rag_router)
 app.include_router(market_router)
 app.include_router(financial_router)  # Financial Narrative Generator (isolated feature)
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render"""
+    return {"status": "healthy", "service": "Nivesh.ai Backend"}
 
 @app.post("/chat-multilingual")
 async def chat_multilingual_endpoint(request: ChatRequest):
